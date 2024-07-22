@@ -100,7 +100,57 @@ const deleteuserbyid = async (req, res) => {
     }
 };
 
+// const patchUserById=async(req,res)=>{
+//     try {
+//         const id =req.params.id
+//         // console.log(id);
+//         // console.log(req.body);
+//         const userdata=await UserModel.findByIdAndUpdate(id)
+//         console.log(userdata);
+//         if(!userdata){
+//             return res.status(404).json({
+//                 success:false,
+//                 message:"user not found"
+//             })
+//         }
+
+        
+        
+//     } catch (error) {
+//         console.log(`error in controller patch User by id ${error}`);
+//     }
+// }
+const patchUserById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        // const {} = req.body
+        // console.log(id);
+        
+        const userdata = await UserModel.findByIdAndUpdate(id , req.body , {new : true});
+        
+        if (!userdata) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        
+        
+        return res.status(200).json({
+            success: true,
+            message: "User updated successfully",
+            data: userdata,
+        });
+        
+    } catch (error) {
+        console.log(`Error in controller patchUserById: ${error}`);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
 
 
 
-export { usercreate, getUserbyId, deleteuserbyid }
+export { usercreate, getUserbyId, deleteuserbyid,patchUserById }
