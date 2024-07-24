@@ -1,0 +1,19 @@
+
+create user
+post ==> http://localhost:5000/usercreate
+{
+  "name":"khan",
+  "gmail" : "khan@gmail.com", 
+  "Number" :"123",
+  "Password" : "123"
+}
+
+
+login user
+post ==> http://localhost:5000/login
+{
+  "name":"khan",
+  "gmail" : "khan@gmail.com", 
+  "Number" :"123",
+  "Password" : "123"
+}

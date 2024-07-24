@@ -2,6 +2,7 @@ import express, { Router } from "express"
 import dotenv from "dotenv"
 import userRouter from "./routes/user.js"
 import dbconnect from "./DB/db.js"
+import cookieParser from "cookie-parser"
 dotenv.config()
 const app=express()
 
@@ -14,6 +15,7 @@ dbconnect()
 // })
 
 app.use(express.json())
+app.use(cookieParser())
 app.use('/',userRouter)
 
 

@@ -1,5 +1,7 @@
 import { response } from "express"
 import UserModel from "../models/userModel.js"
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
 
 
@@ -7,7 +9,9 @@ let usercreate = async (req, res) => {
     try {
         let { name, gmail, Number, Password } = req.body
 
-        const user = await UserModel.create({ name, gmail, Number, Password })
+        const hashPassword = await bcrypt.hash(Password , 10)
+
+        const user = await UserModel.create({ name, gmail, Number, Password:hashPassword })
 
         res.status(201).json({
             success: true,
@@ -21,30 +25,58 @@ let usercreate = async (req, res) => {
 }
 
 
-// const getUserbyId = async (req, res) => {
+export const userLogin = async (req, res) => {
+    try {
+        const { gmail, Password } = req.body;
 
-//     try {
-//         const id = req.params.id
-//         // console.log(id);
-//         const userData = await UserModel.findById({id})
-//         console.log(userData);
-//         if(!userData){
-//             throw new Error('Invalid credential')
-//         }
-//         const {Password,Number,...data} = userData._doc
-//         res.status(200).json({
-//             success: true,
-//             userData:data
-//         })
-//         console.log(userData);
-//     } catch (error) {
-//         res.status(404).json({
-//             success:false,
-//             message:error
-//         })
-//         console.log(`error in user get controller ${error}`);
-//     }
-// }
+        // Check if the user is already registered
+        let user = await UserModel.findOne({ gmail });
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "User not found, Register the user first...",
+            });
+        }
+
+        if (!gmail || !Password) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required",
+            });
+
+        }
+
+        // user hai ki nahi  hai
+        // all fields are require
+        // password check
+
+        const isMatch = await bcrypt.compare(Password , user.Password)
+     
+        // Generate JWT token and set it in a cookie
+        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET);
+        user.Password = undefined
+
+        res.status(201).cookie("token", token, {
+            httpOnly: true,
+            maxAge: 10 * 60 * 10000,
+        }).json({
+            success: true,
+            message: `${user.name} login successfully.`,
+            user: user,
+            token: token
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error while login user.",
+            error: error.message,
+        });
+    }
+}
+
+
+
 const getUserbyId = async (req, res) => {
     try {
         const id = req.params.id;
@@ -100,26 +132,7 @@ const deleteuserbyid = async (req, res) => {
     }
 };
 
-// const patchUserById=async(req,res)=>{
-//     try {
-//         const id =req.params.id
-//         // console.log(id);
-//         // console.log(req.body);
-//         const userdata=await UserModel.findByIdAndUpdate(id)
-//         console.log(userdata);
-//         if(!userdata){
-//             return res.status(404).json({
-//                 success:false,
-//                 message:"user not found"
-//             })
-//         }
 
-        
-        
-//     } catch (error) {
-//         console.log(`error in controller patch User by id ${error}`);
-//     }
-// }
 const patchUserById = async (req, res) => {
     try {
         const id = req.params.id;
@@ -152,5 +165,37 @@ const patchUserById = async (req, res) => {
 };
 
 
+export const userLogout = (req, res) => {
+    try {
+        res.status(200).cookie("token", "", {
+            expires: new Date(Date.now())
+        }).json({
+            success: true,
+            message: "User logged-Out successfully..."
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error while logged-Out user",
+            error: error.message
+        })
+    }
+}
+
+
+export const getMyProfile = (req, res) => {
+    try {
+        res.status(200).json({
+            success: true,
+            user: req.user
+        })
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error while logged-Out user",
+            error: error.message
+        })
+    }
+}
 
 export { usercreate, getUserbyId, deleteuserbyid,patchUserById }
