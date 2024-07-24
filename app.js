@@ -10,9 +10,9 @@ const port=process.env.PORT
 
 dbconnect()
 
-// app.use('/',(req,res)=>{
-// res.send("start")
-// })
+app.use('/',(req,res)=>{
+res.send("start")
+})
 
 app.use(express.json())
 app.use(cookieParser())
